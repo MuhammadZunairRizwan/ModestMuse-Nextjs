@@ -4,21 +4,21 @@ export interface User {
   id: number;
   email: string;
   password: string;
-  firstName: string;
-  lastName: string;
-  phoneNumber: string;
+  first_name: string;
+  last_name: string;
+  phone_number: string;
   address: string;
-  userType: 'buyer' | 'seller';
+  user_type: 'buyer' | 'seller';
   is_verified: boolean;
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  updated_at: string;
   // Seller specific fields
-  shopName?: string;
-  registrationNumber?: string;
-  shopAddress?: string;
-  warehouseAddress?: string;
-  returnAddress?: string;
-  businessDetails?: string;
+  shop_name?: string;
+  registration_number?: string;
+  shop_address?: string;
+  warehouse_address?: string;
+  return_address?: string;
+  business_details?: string;
 }
 
 export interface VerificationCode {
@@ -55,7 +55,7 @@ export const findUserById = async (id: number): Promise<User | undefined> => {
   }
 };
 
-export const createUser = async (user: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> => {
+export const createUser = async (user: Omit<User, 'id' | 'created_at' | 'updated_at'>): Promise<User> => {
   try {
     const result = await pool.query(
       `INSERT INTO users (
@@ -67,18 +67,18 @@ export const createUser = async (user: Omit<User, 'id' | 'createdAt' | 'updatedA
       [
         user.email,
         user.password,
-        user.firstName,
-        user.lastName,
-        user.phoneNumber,
+        user.first_name,
+        user.last_name,
+        user.phone_number,
         user.address,
-        user.userType,
+        user.user_type,
         user.is_verified,
-        user.shopName,
-        user.registrationNumber,
-        user.shopAddress,
-        user.warehouseAddress,
-        user.returnAddress,
-        user.businessDetails
+        user.shop_name,
+        user.registration_number,
+        user.shop_address,
+        user.warehouse_address,
+        user.return_address,
+        user.business_details
       ]
     );
     return result.rows[0];
@@ -86,22 +86,6 @@ export const createUser = async (user: Omit<User, 'id' | 'createdAt' | 'updatedA
     console.error('Error creating user:', error);
     throw error;
   }
-};
-
-const columnMap: Record<string, string> = {
-  firstName: 'first_name',
-  lastName: 'last_name',
-  phoneNumber: 'phone_number',
-  userType: 'user_type',
-  isVerified: 'is_verified',
-  createdAt: 'created_at',
-  updatedAt: 'updated_at',
-  shopName: 'shop_name',
-  registrationNumber: 'registration_number',
-  shopAddress: 'shop_address',
-  warehouseAddress: 'warehouse_address',
-  returnAddress: 'return_address',
-  businessDetails: 'business_details'
 };
 
 export const updateUser = async (id: number, updates: Partial<User>): Promise<User | null> => {
@@ -112,8 +96,7 @@ export const updateUser = async (id: number, updates: Partial<User>): Promise<Us
 
     Object.entries(updates).forEach(([key, value]) => {
       if (value !== undefined) {
-        const column = columnMap[key] || key; // map camelCase → snake_case
-        setClauses.push(`${column} = $${paramCount}`);
+        setClauses.push(`${key} = $${paramCount}`);
         values.push(value);
         paramCount++;
       }

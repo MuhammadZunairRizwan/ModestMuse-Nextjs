@@ -64,19 +64,19 @@ export async function POST(request: NextRequest) {
     const userData = {
       email: validatedData.email,
       password: hashedPassword,
-      firstName: validatedData.firstName,
-      lastName: validatedData.lastName,
-      phoneNumber: validatedData.phoneNumber,
+      first_name: validatedData.firstName,
+      last_name: validatedData.lastName,
+      phone_number: validatedData.phoneNumber,
       address: validatedData.address,
-      userType: validatedData.userType,
+      user_type: validatedData.userType,
       is_verified: false,
       ...(validatedData.userType === 'seller' && {
-        shopName: validatedData.shopName,
-        registrationNumber: validatedData.registrationNumber,
-        shopAddress: validatedData.shopAddress,
-        warehouseAddress: validatedData.warehouseAddress,
-        returnAddress: validatedData.returnAddress,
-        businessDetails: validatedData.businessDetails
+        shop_name: validatedData.shopName,
+        registration_number: validatedData.registrationNumber,
+        shop_address: validatedData.shopAddress,
+        warehouse_address: validatedData.warehouseAddress,
+        return_address: validatedData.returnAddress,
+        business_details: validatedData.businessDetails
       })
     };
 

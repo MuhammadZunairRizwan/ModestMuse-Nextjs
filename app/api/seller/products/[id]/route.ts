@@ -13,7 +13,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     const decoded = verifyToken(token) as { id: number };
     const user = await findUserById(decoded.id);
 
-    if (!user || user.userType !== "seller") {
+    if (!user || user.user_type !== "seller") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -42,7 +42,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const decoded = verifyToken(token) as { id: number };
     const user = await findUserById(decoded.id);
 
-    if (!user || user.userType !== "seller") {
+    if (!user || user.user_type !== "seller") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -60,7 +60,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     const product = await updateProduct(productId, updates);
 
-    return product && product.sellerId === user.id
+    return product && product.seller_id === user.id
       ? NextResponse.json({ product })
       : NextResponse.json({ error: "Product not found or unauthorized" }, { status: 404 });
   } catch (error) {

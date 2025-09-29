@@ -14,9 +14,9 @@ export async function GET(request: NextRequest) {
 
     // Verify token and get seller ID
     const decoded = verifyToken(token)
-    const sellerId = decoded.id
+    const seller_id = decoded.id
 
-    const products = await getProductsBySeller(sellerId)
+    const products = await getProductsBySeller(seller_id)
 
     return NextResponse.json({ products })
   } catch (error) {
@@ -37,27 +37,27 @@ export async function POST(request: NextRequest) {
 
     // Verify token and get seller ID
     const decoded = verifyToken(token)
-    const sellerId = decoded.id
+    const seller_id = decoded.id
 
     const body = await request.json()
-    const { name, description, category, price, stockQuantity, images, status } = body
+    const { name, description, category, price, stock_quantity, images, status } = body
 
     // Validation
-    if (!name || !description || !category || price === undefined || stockQuantity === undefined) {
+    if (!name || !description || !category || price === undefined || stock_quantity === undefined) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
     // Generate unique product ID
-    const productId = await generateProductId()
+    const product_id = await generateProductId()
 
     const productData = {
-      productId,
+      product_id,
       name,
       description,
       category,
       price: Number.parseFloat(price),
-      stockQuantity: Number.parseInt(stockQuantity),
-      sellerId,
+      stock_quantity: Number.parseInt(stock_quantity),
+      seller_id,
       images: images || [],
       status: status || "active",
     }

@@ -2,27 +2,27 @@ import { pool } from "./init"
 
 export interface Product {
   id: number
-  productId: string
+  product_id: string
   name: string
   description: string
   category: string
   price: number
-  stockQuantity: number
-  sellerId: number
+  stock_quantity: number
+  seller_id: number
   images: string[]
   status: "active" | "inactive" | "out_of_stock"
-  createdAt: string
-  updatedAt: string
+  created_at: string
+  updated_at: string
 }
 
 export interface CreateProductData {
-  productId: string
+  product_id: string
   name: string
   description: string
   category: string
   price: number
-  stockQuantity: number
-  sellerId: number
+  stock_quantity: number
+  seller_id: number
   images: string[]
   status?: "active" | "inactive" | "out_of_stock"
 }
@@ -37,13 +37,13 @@ export const createProduct = async (productData: CreateProductData): Promise<Pro
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING *`,
       [
-        productData.productId,
+        productData.product_id,
         productData.name,
         productData.description,
         productData.category,
         productData.price,
-        productData.stockQuantity,
-        productData.sellerId,
+        productData.stock_quantity,
+        productData.seller_id,
         productData.images,
         productData.status || "active",
       ],
@@ -125,16 +125,9 @@ export const updateProduct = async (id: number, updates: Partial<CreateProductDa
     const values: any[] = []
     let paramCount = 1
 
-    const columnMap: Record<string, string> = {
-      productId: "product_id",
-      stockQuantity: "stock_quantity",
-      sellerId: "seller_id",
-    }
-
     Object.entries(updates).forEach(([key, value]) => {
       if (value !== undefined) {
-        const column = columnMap[key] || key
-        setClauses.push(`${column} = $${paramCount}`)
+        setClauses.push(`${key} = $${paramCount}`)
         values.push(value)
         paramCount++
       }
@@ -154,7 +147,7 @@ export const updateProduct = async (id: number, updates: Partial<CreateProductDa
 
     return result.rows[0] || null
   } catch (error) {
-    console.error("Error updating product:", error)
+    console.error("Error updating product:", error);
     return null
   }
 }

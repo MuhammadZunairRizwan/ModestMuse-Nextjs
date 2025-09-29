@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Send welcome email
-    await sendWelcomeEmail(updatedUser.email, updatedUser.firstName, updatedUser.userType);
+    await sendWelcomeEmail(updatedUser.email, updatedUser.first_name, updatedUser.user_type);
 
     return NextResponse.json(
       { message: 'Email verified successfully' },

@@ -17,8 +17,8 @@ export const generateToken = (user: User): string => {
   const payload = {
     id: user.id,
     email: user.email,
-    userType: user.userType,
-    isVerified: user.is_verified
+    user_type: user.user_type,
+    is_verified: user.is_verified
   };
   
   return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
