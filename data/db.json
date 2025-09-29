@@ -1,0 +1,114 @@
+{
+  "users": [
+    {
+      "email": "zunairizwan@gmail.com",
+      "password": "$2b$12$i/hzQrTaGsewTfWjIGtX9O/411Xi.kmdRPcFmCaSTCjsqL6XFIvwS",
+      "firstName": "Muhammad Zunair",
+      "lastName": "Rizwan",
+      "phoneNumber": "92123456789",
+      "address": "Faisalabad, Pakistan, Faisalabad, 38000, Pakistan",
+      "userType": "buyer",
+      "isVerified": false,
+      "id": "1758883645768",
+      "createdAt": "2025-09-26T10:47:25.768Z",
+      "updatedAt": "2025-09-26T10:47:25.769Z"
+    },
+    {
+      "email": "zunairizwan1@gmail.com",
+      "password": "$2b$12$3ByvmKwvL7LF9lgvai7o/eCx5s4KdTLy23iYpTqQnEnCzRAykF6Ji",
+      "firstName": "Muhammad Zunair",
+      "lastName": "Rizwan",
+      "phoneNumber": "92123456789",
+      "address": "Faisalabad, Pakistan, Faisalabad, 38000, Pakistan",
+      "userType": "buyer",
+      "isVerified": false,
+      "id": "1758885725857",
+      "createdAt": "2025-09-26T11:22:05.857Z",
+      "updatedAt": "2025-09-26T11:22:05.857Z"
+    },
+    {
+      "email": "eamify81@gmail.com",
+      "password": "$2b$12$KJmEW9POYOoBsNeMcF2JNuF1RtSYpts6rlSFEssXi.6ik4kGHkvrm",
+      "firstName": "Muhammad ",
+      "lastName": "Rizwan",
+      "phoneNumber": "92123456789",
+      "address": "Faisalabad, Pakistan, Faisalabad, 38000, Pakistan",
+      "userType": "buyer",
+      "isVerified": false,
+      "id": "1758886114229",
+      "createdAt": "2025-09-26T11:28:34.229Z",
+      "updatedAt": "2025-09-26T11:28:34.229Z"
+    },
+    {
+      "email": "examify81@gmail.com",
+      "password": "$2b$12$ZdrE13FHyf57opy6k7sb.Obmv/dQmuO24q1tVDaVbTDytPr97A7IO",
+      "firstName": "Muhammad ",
+      "lastName": "Rizwan",
+      "phoneNumber": "92123456789",
+      "address": "Faisalabad, Pakistan, Faisalabad, 38000, Pakistan",
+      "userType": "buyer",
+      "isVerified": false,
+      "id": "1758886251519",
+      "createdAt": "2025-09-26T11:30:51.519Z",
+      "updatedAt": "2025-09-26T11:30:51.519Z"
+    },
+    {
+      "email": "zunairizwan2@gmail.com",
+      "password": "$2b$12$ZOpZc5k5W2Sa7M4s2D22tedR7CfCUb0zbq.kjiE3x2o4o9Ivjg87.",
+      "firstName": "Muhammad ",
+      "lastName": "Rizwan",
+      "phoneNumber": "92123456789",
+      "address": "Faisalabad, Pakistan, Faisalabad, 38000, Pakistan",
+      "userType": "buyer",
+      "isVerified": false,
+      "id": "1758886385925",
+      "createdAt": "2025-09-26T11:33:05.925Z",
+      "updatedAt": "2025-09-26T11:33:05.925Z"
+    },
+    {
+      "email": "muhammaduzair531@gmail.com",
+      "password": "$2b$12$Rwj5E2zrUCZen/30ibQa/.stvlvxiYzciSGQ3wV5yRVxWr4OjBEUO",
+      "firstName": "Muhammad ",
+      "lastName": "Rizwan",
+      "phoneNumber": "92123456789",
+      "address": "Faisalabad, Pakistan, Faisalabad, 38000, Pakistan",
+      "userType": "buyer",
+      "isVerified": false,
+      "id": "1758886611132",
+      "createdAt": "2025-09-26T11:36:51.132Z",
+      "updatedAt": "2025-09-26T11:36:51.132Z"
+    }
+  ],
+  "verificationCodes": [
+    {
+      "email": "zunairizwan@gmail.com",
+      "code": "294246",
+      "expiresAt": "2025-09-26T11:02:25.795Z"
+    },
+    {
+      "email": "zunairizwan1@gmail.com",
+      "code": "270392",
+      "expiresAt": "2025-09-26T11:37:05.882Z"
+    },
+    {
+      "email": "eamify81@gmail.com",
+      "code": "294343",
+      "expiresAt": "2025-09-26T11:43:34.266Z"
+    },
+    {
+      "email": "examify81@gmail.com",
+      "code": "471022",
+      "expiresAt": "2025-09-26T11:45:51.539Z"
+    },
+    {
+      "email": "zunairizwan2@gmail.com",
+      "code": "523532",
+      "expiresAt": "2025-09-26T11:48:05.959Z"
+    },
+    {
+      "email": "muhammaduzair531@gmail.com",
+      "code": "976640",
+      "expiresAt": "2025-09-26T11:51:51.167Z"
+    }
+  ]
+}

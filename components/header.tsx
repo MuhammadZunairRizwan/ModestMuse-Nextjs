@@ -1,7 +1,27 @@
-import { Search, User, ShoppingBag } from "lucide-react"
+"use client"
+
+import Link from "next/link";
+import { Search, User, ShoppingBag, Store } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useEffect, useState } from "react"
 
 export function Header() {
+  const [user, setUser] = useState<any>(null)
+
+  useEffect(() => {
+    // Check if user is logged in
+    const userData = localStorage.getItem('user')
+    if (userData) {
+      setUser(JSON.parse(userData))
+    }
+  }, [])
+
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    window.location.href = '/login'
+  }
+
   return (
     <header className="bg-white border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -16,21 +36,26 @@ export function Header() {
 
           {/* Navigation */}
           <nav className="hidden md:flex space-x-8">
-            <a href="/" className="text-gray-700 hover:text-gray-900 font-medium">
+            <Link href="/" className="text-gray-700 hover:text-gray-900 font-medium">
               Home
-            </a>
-            <a href="/shop" className="text-gray-700 hover:text-gray-900 font-medium">
+            </Link>
+            <Link href="/shop" className="text-gray-700 hover:text-gray-900 font-medium">
               Shop
-            </a>
-            <a href="/about" className="text-gray-700 hover:text-gray-900 font-medium">
+            </Link>
+            {user?.user_type === 'seller' && (
+              <Link href="/seller/products" className="text-gray-700 hover:text-gray-900 font-medium">
+                My Products
+              </Link>
+            )}
+            <Link href="/about" className="text-gray-700 hover:text-gray-900 font-medium">
               About Us
-            </a>
-            <a href="#" className="text-gray-700 hover:text-gray-900 font-medium">
+            </Link>
+            <Link href="#" className="text-gray-700 hover:text-gray-900 font-medium">
               Blog
-            </a>
-            <a href="#" className="text-gray-700 hover:text-gray-900 font-medium">
+            </Link>
+            <Link href="#" className="text-gray-700 hover:text-gray-900 font-medium">
               Contact
-            </a>
+            </Link>
           </nav>
 
           {/* Right side icons */}
@@ -38,9 +63,22 @@ export function Header() {
             <Button variant="ghost" size="icon">
               <Search className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="icon">
-              <User className="h-5 w-5" />
-            </Button>
+            {user ? (
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-700">
+                  {user.first_name} ({user.user_type})
+                </span>
+                <Button variant="ghost" size="sm" onClick={handleLogout}>
+                  Logout
+                </Button>
+              </div>
+            ) : (
+              <Link href="/login">
+                <Button variant="ghost" size="icon">
+                  <User className="h-5 w-5" />
+                </Button>
+              </Link>
+            )}
             <Button variant="ghost" size="icon">
               <ShoppingBag className="h-5 w-5" />
             </Button>
