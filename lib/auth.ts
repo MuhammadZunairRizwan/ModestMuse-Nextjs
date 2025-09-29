@@ -3,6 +3,8 @@ import jwt from 'jsonwebtoken';
 import { User } from './db/db';
 
 const JWT_SECRET = process.env.JWT_SECRET || '';
+console.log("JWT_SECRET in verifyToken:", JWT_SECRET);
+
 
 export const hashPassword = async (password: string): Promise<string> => {
   const saltRounds = 12;

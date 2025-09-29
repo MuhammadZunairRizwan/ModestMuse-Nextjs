@@ -25,11 +25,14 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
+
   try {
-    const decoded = verifyToken(token) as { id: number; userType: string };
+    console.log("Raw cookie token:", token);
+    const decoded = verifyToken(token) as { id: number; user_type: string };
+    
 
     // Light check only
-    if (pathname.startsWith("/seller") && decoded.userType !== "seller") {
+    if (pathname.startsWith("/seller") && decoded.user_type !== "seller") {
       return NextResponse.redirect(new URL("/shop", request.url));
     }
 
@@ -44,4 +47,5 @@ export const config = {
   matcher: [
     "/((?!_next/static|_next/image|favicon.ico|api/auth|login|signup|verify-email).*)",
   ],
+    runtime: "nodejs",
 };
