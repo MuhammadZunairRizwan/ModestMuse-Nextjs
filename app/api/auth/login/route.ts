@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate JWT token
-    const token = generateToken(user);
+    const token = await generateToken(user);
 
     // Set token as HTTP-only cookie
     cookies().set("token", token, {

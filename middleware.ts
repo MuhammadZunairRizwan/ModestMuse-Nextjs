@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { verifyToken } from "@/lib/auth";
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Public routes
@@ -28,7 +28,7 @@ export function middleware(request: NextRequest) {
 
   try {
     console.log("Raw cookie token:", token);
-    const decoded = verifyToken(token) as { id: number; user_type: string };
+    const decoded = await verifyToken(token) as { id: number; user_type: string };
     
 
     // Light check only
@@ -47,5 +47,5 @@ export const config = {
   matcher: [
     "/((?!_next/static|_next/image|favicon.ico|api/auth|login|signup|verify-email).*)",
   ],
-    runtime: "nodejs",
+    runtime: "experimental-edge",
 };

@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,8 +14,6 @@ import { useToast } from "@/components/ui/use-toast"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import ImageUpload from "@/components/image-upload"
-import { Header } from "@/components/header"
-import { Footer } from "@/components/footer"
 
 const categories = [
   "Electronics",
@@ -30,7 +28,22 @@ const categories = [
   "Other",
 ]
 
-export default function NewProductPage() {
+interface Product {
+  id: number
+  product_id: string
+  name: string
+  description: string
+  category: string
+  price: number
+  stock_quantity: number
+  seller_id: number
+  images: string[]
+  status: "active" | "inactive" | "out_of_stock"
+  created_at: string
+  updated_at: string
+}
+
+export default function EditProductPage({ params }: { params: { id: string } }) {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -41,8 +54,49 @@ export default function NewProductPage() {
     status: "active",
   })
   const [isLoading, setIsLoading] = useState(false)
+  const [loadingProduct, setLoadingProduct] = useState(true)
   const router = useRouter()
   const { toast } = useToast()
+
+  useEffect(() => {
+    fetchProduct()
+  }, [params.id])
+
+  const fetchProduct = async () => {
+    try {
+      const response = await fetch(`/api/seller/products/${params.id}`)
+      if (response.ok) {
+        const data = await response.json()
+        const product = data.product
+        
+        setFormData({
+          name: product.name,
+          description: product.description,
+          category: product.category,
+          price: product.price.toString(),
+          stockQuantity: product.stock_quantity.toString(),
+          images: product.images || [],
+          status: product.status,
+        })
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to fetch product",
+          variant: "destructive",
+        })
+        router.push("/seller/products")
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Something went wrong",
+        variant: "destructive",
+      })
+      router.push("/seller/products")
+    } finally {
+      setLoadingProduct(false)
+    }
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -76,8 +130,8 @@ export default function NewProductPage() {
         stock_quantity: Number.parseInt(formData.stockQuantity),
       }
 
-      const response = await fetch("/api/seller/products", {
-        method: "POST",
+      const response = await fetch(`/api/seller/products/${params.id}`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
@@ -89,13 +143,13 @@ export default function NewProductPage() {
       if (response.ok) {
         toast({
           title: "Success",
-          description: "Product created successfully",
+          description: "Product updated successfully",
         })
         router.push("/seller/products")
       } else {
         toast({
           title: "Error",
-          description: data.error || "Failed to create product",
+          description: data.error || "Failed to update product",
           variant: "destructive",
         })
       }
@@ -110,11 +164,22 @@ export default function NewProductPage() {
     }
   }
 
+  if (loadingProduct) {
+    return (
+      <div className="container mx-auto py-8 max-w-2xl">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+            <p className="mt-2 text-gray-600">Loading product...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="container mx-auto py-8 max-w-2xl">
-      <Header />
       <div className="flex items-center mb-8">
-
         <Link href="/seller/products">
           <Button variant="outline" size="sm" className="mr-4 bg-transparent">
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -122,15 +187,15 @@ export default function NewProductPage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-3xl font-bold">Add New Product</h1>
-          <p className="text-gray-600 mt-2">Create a new product listing for your store</p>
+          <h1 className="text-3xl font-bold">Edit Product</h1>
+          <p className="text-gray-600 mt-2">Update your product information</p>
         </div>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>Product Information</CardTitle>
-          <CardDescription>Fill in the details for your new product</CardDescription>
+          <CardDescription>Update the details for your product</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -223,17 +288,17 @@ export default function NewProductPage() {
                 <SelectContent>
                   <SelectItem value="active">Active</SelectItem>
                   <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="out_of_stock">Out of Stock</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Creating Product..." : "Create Product"}
+              {isLoading ? "Updating Product..." : "Update Product"}
             </Button>
           </form>
         </CardContent>
       </Card>
-    <Footer/>
     </div>
   )
 }

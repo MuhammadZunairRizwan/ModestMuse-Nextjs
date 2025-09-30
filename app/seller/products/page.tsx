@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge"
 import { Plus, Edit, Trash2, Eye } from "lucide-react"
 import Link from "next/link"
 import { useToast } from "@/components/ui/use-toast"
+import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
 
 interface Product {
   id: number
@@ -117,6 +119,8 @@ export default function SellerProductsPage() {
 
   return (
     <div className="container mx-auto py-8">
+      <Header />
+
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold">My Products</h1>
@@ -204,6 +208,9 @@ export default function SellerProductsPage() {
           ))}
         </div>
       )}
+
+     <Footer />
+
     </div>
   )
 }

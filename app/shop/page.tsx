@@ -10,6 +10,7 @@ import { Search, ShoppingCart, Store } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
+import Link from "next/link"
 
 interface Product {
   id: number
@@ -101,12 +102,40 @@ export default function ShopPage() {
     setFilteredProducts(filtered)
   }
 
-  const handleAddToCart = (productId: number) => {
-    // In a real app, this would add to cart
-    toast({
-      title: "Added to Cart",
-      description: "Product has been added to your cart",
-    })
+  const handleAddToCart = async (productId: number) => {
+    try {
+      const response = await fetch("/api/cart", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          product_id: productId,
+          quantity: 1
+        }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        toast({
+          title: "Added to Cart",
+          description: "Product has been added to your cart",
+        })
+      } else {
+        const errorData = await response.json()
+        toast({
+          title: "Error",
+          description: errorData.error || "Failed to add to cart",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Something went wrong",
+        variant: "destructive",
+      })
+    }
   }
 
   if (loading) {
@@ -181,28 +210,38 @@ export default function ShopPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProducts.map((product) => (
             <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-              <div className="aspect-square relative bg-gray-100">
-                {product.images && product.images.length > 0 ? (
-                  <img
-                    src={product.images[0] || "/placeholder.svg"}
-                    alt={product.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400">
-                    <Store className="w-12 h-12" />
-                  </div>
-                )}
-              </div>
+              <Link href={`/shop/${product.id}`}>
+                <div className="aspect-square relative bg-gray-100 cursor-pointer">
+                  {product.images && product.images.length > 0 ? (
+                    <img
+                      src={product.images[0] || "/placeholder.svg"}
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      <Store className="w-12 h-12" />
+                    </div>
+                  )}
+                </div>
+              </Link>
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg line-clamp-2">{product.name}</CardTitle>
+                <Link href={`/shop/${product.id}`}>
+                  <CardTitle className="text-lg line-clamp-2 hover:text-blue-600 cursor-pointer">
+                    {product.name}
+                  </CardTitle>
+                </Link>
                 <CardDescription className="text-sm">
                   by <span className="font-medium">{product.shopName}</span>
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <p className="text-sm text-gray-600 line-clamp-2">{product.description}</p>
+                  <Link href={`/shop/${product.id}`}>
+                    <p className="text-sm text-gray-600 line-clamp-2 hover:text-gray-800 cursor-pointer">
+                      {product.description}
+                    </p>
+                  </Link>
 
                   <div className="flex justify-between items-center">
                     <Badge variant="outline" className="text-xs">

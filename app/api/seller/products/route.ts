@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Verify token and get seller ID
-    const decoded = verifyToken(token)
+    const decoded = await verifyToken(token)
     const seller_id = decoded.id
 
     const products = await getProductsBySeller(seller_id)
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify token and get seller ID
-    const decoded = verifyToken(token)
+    const decoded = await verifyToken(token)
     const seller_id = decoded.id
 
     const body = await request.json()
