@@ -5,8 +5,21 @@ export interface Order {
   order_number: string
   user_id: number
   total_amount: number
-  status: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled"
+  status: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled" | "return_requested" | "return_delivered" | "return_resolved" | "return_in_conflict"
   delivery_address: string
+  created_at: string
+  updated_at: string
+}
+
+export interface ReturnOrder {
+  id: number
+  order_id: number
+  user_id: number
+  seller_id: number
+  return_reason?: string
+  status: "requested" | "delivered" | "resolved" | "in_conflict"
+  return_address: string
+  refund_amount: number
   created_at: string
   updated_at: string
 }
@@ -199,5 +212,313 @@ export const getSellerOrders = async (sellerId: number): Promise<OrderItem[]> =>
   } catch (error) {
     console.error("Error fetching seller orders:", error)
     return []
+  }
+}
+
+// Wallet system functions
+export const getUserWalletBalance = async (userId: number): Promise<number> => {
+  try {
+    const result = await pool.query(
+      "SELECT wallet_balance FROM users WHERE id = $1",
+      [userId]
+    )
+    return result.rows[0]?.wallet_balance || 0
+  } catch (error) {
+    console.error("Error fetching wallet balance:", error)
+    return 0
+  }
+}
+
+export const updateUserWalletBalance = async (
+  userId: number, 
+  amount: number
+): Promise<boolean> => {
+  try {
+    await pool.query(
+      "UPDATE users SET wallet_balance = wallet_balance + $1 WHERE id = $2",
+      [amount, userId]
+    )
+    return true
+  } catch (error) {
+    console.error("Error updating wallet balance:", error)
+    return false
+  }
+}
+
+// Return order functions
+export const createReturnOrder = async (
+  orderId: number,
+  userId: number,
+  sellerId: number,
+  returnReason?: string
+): Promise<ReturnOrder | null> => {
+  const client = await pool.connect()
+  
+  try {
+    await client.query('BEGIN')
+
+    // Get order details
+    const orderResult = await client.query(
+      "SELECT total_amount FROM orders WHERE id = $1 AND user_id = $2",
+      [orderId, userId]
+    )
+
+    if (!orderResult.rows[0]) {
+      throw new Error("Order not found")
+    }
+
+    // Get seller's return address
+    const sellerResult = await client.query(
+      "SELECT return_address FROM users WHERE id = $1",
+      [sellerId]
+    )
+
+    if (!sellerResult.rows[0]?.return_address) {
+      throw new Error("Seller return address not found")
+    }
+
+    const returnAddress = sellerResult.rows[0].return_address
+    const refundAmount = orderResult.rows[0].total_amount
+
+    // Create return order
+    const returnResult = await client.query(
+      `INSERT INTO return_orders (order_id, user_id, seller_id, return_reason, return_address, refund_amount)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING *`,
+      [orderId, userId, sellerId, returnReason, returnAddress, refundAmount]
+    )
+
+    // Update order status
+    await client.query(
+      "UPDATE orders SET status = 'return_requested' WHERE id = $1",
+      [orderId]
+    )
+
+    await client.query('COMMIT')
+    return returnResult.rows[0]
+
+  } catch (error) {
+    await client.query('ROLLBACK')
+    console.error("Error creating return order:", error)
+    return null
+  } finally {
+    client.release()
+  }
+}
+
+export const markReturnAsDelivered = async (
+  returnOrderId: number,
+  userId: number
+): Promise<ReturnOrder | null> => {
+  try {
+    const result = await pool.query(
+      `UPDATE return_orders 
+       SET status = 'delivered', updated_at = CURRENT_TIMESTAMP
+       WHERE id = $1 AND user_id = $2
+       RETURNING *`,
+      [returnOrderId, userId]
+    )
+
+    if (result.rows[0]) {
+      // Update main order status
+      await pool.query(
+        "UPDATE orders SET status = 'return_delivered' WHERE id = $1",
+        [result.rows[0].order_id]
+      )
+    }
+
+    return result.rows[0] || null
+  } catch (error) {
+    console.error("Error marking return as delivered:", error)
+    return null
+  }
+}
+
+export const confirmReturnOrder = async (
+  returnOrderId: number,
+  sellerId: number
+): Promise<ReturnOrder | null> => {
+  const client = await pool.connect()
+  
+  try {
+    await client.query('BEGIN')
+
+    // Get return order details
+    const returnResult = await client.query(
+      `SELECT ro.*, o.user_id as buyer_id 
+       FROM return_orders ro 
+       JOIN orders o ON ro.order_id = o.id 
+       WHERE ro.id = $1 AND ro.seller_id = $2`,
+      [returnOrderId, sellerId]
+    )
+
+    if (!returnResult.rows[0]) {
+      throw new Error("Return order not found")
+    }
+
+    const returnOrder = returnResult.rows[0]
+
+    // Update return order status
+    const updateResult = await client.query(
+      `UPDATE return_orders 
+       SET status = 'resolved', updated_at = CURRENT_TIMESTAMP
+       WHERE id = $1
+       RETURNING *`,
+      [returnOrderId]
+    )
+
+    // Update main order status
+    await client.query(
+      "UPDATE orders SET status = 'return_resolved' WHERE id = $1",
+      [returnOrder.order_id]
+    )
+
+    // Refund amount to buyer's wallet
+    await client.query(
+      "UPDATE users SET wallet_balance = wallet_balance + $1 WHERE id = $2",
+      [returnOrder.refund_amount, returnOrder.buyer_id]
+    )
+
+    await client.query('COMMIT')
+    return updateResult.rows[0]
+
+  } catch (error) {
+    await client.query('ROLLBACK')
+    console.error("Error confirming return order:", error)
+    return null
+  } finally {
+    client.release()
+  }
+}
+
+export const markReturnInConflict = async (
+  returnOrderId: number,
+  sellerId: number
+): Promise<ReturnOrder | null> => {
+  try {
+    const result = await pool.query(
+      `UPDATE return_orders 
+       SET status = 'in_conflict', updated_at = CURRENT_TIMESTAMP
+       WHERE id = $1 AND seller_id = $2
+       RETURNING *`,
+      [returnOrderId, sellerId]
+    )
+
+    if (result.rows[0]) {
+      // Update main order status
+      await pool.query(
+        "UPDATE orders SET status = 'return_in_conflict' WHERE id = $1",
+        [result.rows[0].order_id]
+      )
+    }
+
+    return result.rows[0] || null
+  } catch (error) {
+    console.error("Error marking return in conflict:", error)
+    return null
+  }
+}
+
+export const getReturnOrdersByUser = async (userId: number): Promise<ReturnOrder[]> => {
+  try {
+    const result = await pool.query(
+      `SELECT ro.*, o.order_number
+       FROM return_orders ro
+       JOIN orders o ON ro.order_id = o.id
+       WHERE ro.user_id = $1
+       ORDER BY ro.created_at DESC`,
+      [userId]
+    )
+    return result.rows
+  } catch (error) {
+    console.error("Error fetching return orders:", error)
+    return []
+  }
+}
+
+// Get seller return address for an order
+export const getSellerReturnAddress = async (orderId: number, userId: number): Promise<string | null> => {
+  try {
+    const result = await pool.query(
+      `SELECT u.return_address
+       FROM order_items oi
+       JOIN users u ON oi.seller_id = u.id
+       JOIN orders o ON oi.order_id = o.id
+       WHERE o.id = $1 AND o.user_id = $2
+       LIMIT 1`,
+      [orderId, userId]
+    )
+    
+    return result.rows[0]?.return_address || null
+  } catch (error) {
+    console.error("Error fetching seller return address:", error)
+    return null
+  }
+}
+
+export const getReturnOrdersBySeller = async (sellerId: number): Promise<ReturnOrder[]> => {
+  try {
+    const result = await pool.query(
+      `SELECT ro.*, o.order_number, u.first_name, u.last_name
+       FROM return_orders ro
+       JOIN orders o ON ro.order_id = o.id
+       JOIN users u ON ro.user_id = u.id
+       WHERE ro.seller_id = $1
+       ORDER BY ro.created_at DESC`,
+      [sellerId]
+    )
+    return result.rows
+  } catch (error) {
+    console.error("Error fetching seller return orders:", error)
+    return []
+  }
+}
+
+// Cancel order and refund to wallet
+export const cancelOrderAndRefund = async (
+  orderId: number,
+  sellerId: number
+): Promise<boolean> => {
+  const client = await pool.connect()
+  
+  try {
+    await client.query('BEGIN')
+
+    // Get order details
+    const orderResult = await client.query(
+      `SELECT o.*, oi.seller_id 
+       FROM orders o
+       JOIN order_items oi ON o.id = oi.order_id
+       WHERE o.id = $1 AND oi.seller_id = $2`,
+      [orderId, sellerId]
+    )
+
+    if (!orderResult.rows[0]) {
+      throw new Error("Order not found")
+    }
+
+    const order = orderResult.rows[0]
+
+    // Update order status
+    await client.query(
+      "UPDATE orders SET status = 'cancelled' WHERE id = $1",
+      [orderId]
+    )
+
+    // Refund amount to buyer's wallet
+    await client.query(
+      "UPDATE users SET wallet_balance = wallet_balance + $1 WHERE id = $2",
+      [order.total_amount, order.user_id]
+    )
+
+    await client.query('COMMIT')
+    return true
+
+  } catch (error) {
+    await client.query('ROLLBACK')
+    console.error("Error cancelling order:", error)
+    return false
+  } finally {
+    client.release()
   }
 }

@@ -7,14 +7,44 @@ import { useEffect, useState } from "react"
 
 export function Header() {
   const [user, setUser] = useState<any>(null)
+  const [cartItemCount, setCartItemCount] = useState(0)
 
   useEffect(() => {
     // Check if user is logged in
     const userData = localStorage.getItem('user')
     if (userData) {
-      setUser(JSON.parse(userData))
+      const user = JSON.parse(userData)
+      setUser(user)
+      fetchCartItemCount(user.id)
+    }
+
+    // Listen for cart update events
+    const handleCartUpdate = () => {
+      const userData = localStorage.getItem('user')
+      if (userData) {
+        const user = JSON.parse(userData)
+        fetchCartItemCount(user.id)
+      }
+    }
+
+    window.addEventListener('cartUpdated', handleCartUpdate)
+    
+    return () => {
+      window.removeEventListener('cartUpdated', handleCartUpdate)
     }
   }, [])
+
+  const fetchCartItemCount = async (userId: number) => {
+    try {
+      const response = await fetch('/api/cart')
+      if (response.ok) {
+        const data = await response.json()
+        setCartItemCount(data.itemCount)
+      }
+    } catch (error) {
+      console.error('Error fetching cart item count:', error)
+    }
+  }
 
   const handleLogout = () => {
     localStorage.removeItem('token')
@@ -79,9 +109,16 @@ export function Header() {
                 </Button>
               </Link>
             )}
-            <Button variant="ghost" size="icon">
-              <ShoppingBag className="h-5 w-5" />
-            </Button>
+            <Link href="/cart">
+              <Button variant="ghost" size="icon" className="relative">
+                <ShoppingBag className="h-5 w-5" />
+                {cartItemCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {cartItemCount}
+                  </span>
+                )}
+              </Button>
+            </Link>
           </div>
         </div>
       </div>

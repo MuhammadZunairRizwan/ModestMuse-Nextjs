@@ -89,13 +89,16 @@ CREATE TABLE IF NOT EXISTS cart (
     UNIQUE(user_id, product_id)
 );
 
+-- Add wallet_balance column to users table
+ALTER TABLE users ADD COLUMN IF NOT EXISTS wallet_balance DECIMAL(10, 2) DEFAULT 0.00;
+
 -- Create orders table for storing completed orders
 CREATE TABLE IF NOT EXISTS orders (
     id SERIAL PRIMARY KEY,
     order_number VARCHAR(50) UNIQUE NOT NULL,
     user_id INTEGER NOT NULL,
     total_amount DECIMAL(10, 2) NOT NULL,
-    status VARCHAR(20) CHECK (status IN ('pending', 'confirmed', 'shipped', 'delivered', 'cancelled')) DEFAULT 'pending',
+    status VARCHAR(20) CHECK (status IN ('pending', 'confirmed', 'shipped', 'delivered', 'cancelled', 'return_requested', 'return_delivered', 'return_resolved', 'return_in_conflict')) DEFAULT 'pending',
     delivery_address TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -152,6 +155,41 @@ CREATE TRIGGER update_orders_updated_at
     BEFORE UPDATE ON orders
     FOR EACH ROW
     EXECUTE FUNCTION update_orders_updated_at();
+
+-- Create wallet_transactions table for tracking wallet activities
+CREATE TABLE IF NOT EXISTS wallet_transactions (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    type VARCHAR(20) CHECK (type IN ('deposit', 'withdrawal', 'refund', 'purchase')) NOT NULL,
+    description TEXT NOT NULL,
+    order_id INTEGER,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+);
+
+-- Create return_orders table for managing return requests
+CREATE TABLE IF NOT EXISTS return_orders (
+    id SERIAL PRIMARY KEY,
+    order_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    seller_id INTEGER NOT NULL,
+    return_reason TEXT,
+    status VARCHAR(20) CHECK (status IN ('requested', 'delivered', 'resolved', 'in_conflict')) DEFAULT 'requested',
+    return_address TEXT NOT NULL,
+    refund_amount DECIMAL(10, 2) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (seller_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Create indexes for return_orders table
+CREATE INDEX IF NOT EXISTS idx_return_orders_order_id ON return_orders(order_id);
+CREATE INDEX IF NOT EXISTS idx_return_orders_user_id ON return_orders(user_id);
+CREATE INDEX IF NOT EXISTS idx_return_orders_seller_id ON return_orders(seller_id);
 
 -- Function to generate order number
 CREATE OR REPLACE FUNCTION generate_order_number()
