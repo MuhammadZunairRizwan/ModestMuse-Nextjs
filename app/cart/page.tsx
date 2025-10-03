@@ -215,9 +215,14 @@ export default function CartPage() {
               <ShoppingBag className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">Your cart is empty</h3>
               <p className="text-gray-600 mb-4">Add some products to get started</p>
-              <Button asChild>
-                <Link href="/shop">Continue Shopping</Link>
-              </Button>
+              <div className="space-y-2">
+                <Button asChild className="w-full">
+                  <Link href="/shop">Continue Shopping</Link>
+                </Button>
+                <Button variant="outline" asChild className="w-full">
+                  <Link href="/cart/orders">View Order History</Link>
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>

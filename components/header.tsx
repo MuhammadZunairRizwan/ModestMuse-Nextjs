@@ -77,6 +77,11 @@ export function Header() {
                 My Products
               </Link>
             )}
+            {user?.user_type === 'buyer' && (
+              <Link href="/cart/orders" className="text-gray-700 hover:text-gray-900 font-medium">
+                My Orders
+              </Link>
+            )}
             <Link href="/about" className="text-gray-700 hover:text-gray-900 font-medium">
               About Us
             </Link>

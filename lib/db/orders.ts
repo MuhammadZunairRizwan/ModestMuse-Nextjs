@@ -110,7 +110,10 @@ export const getUserOrders = async (userId: number): Promise<Order[]> => {
       "SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at DESC",
       [userId]
     )
-    return result.rows
+    return result.rows.map(order => ({
+      ...order,
+      total_amount: Number(order.total_amount)
+    }))
   } catch (error) {
     console.error("Error fetching user orders:", error)
     return []
@@ -144,8 +147,14 @@ export const getOrderById = async (orderId: number, userId: number): Promise<{
     )
 
     return {
-      order: orderResult.rows[0],
-      items: itemsResult.rows
+      order: {
+        ...orderResult.rows[0],
+        total_amount: Number(orderResult.rows[0].total_amount)
+      },
+      items: itemsResult.rows.map(item => ({
+        ...item,
+        price: Number(item.price)
+      }))
     }
   } catch (error) {
     console.error("Error fetching order:", error)
@@ -180,7 +189,10 @@ export const getAllOrders = async (): Promise<Order[]> => {
     const result = await pool.query(
       "SELECT * FROM orders ORDER BY created_at DESC"
     )
-    return result.rows
+    return result.rows.map(order => ({
+      ...order,
+      total_amount: Number(order.total_amount)
+    }))
   } catch (error) {
     console.error("Error fetching all orders:", error)
     return []
@@ -208,7 +220,10 @@ export const getSellerOrders = async (sellerId: number): Promise<OrderItem[]> =>
        ORDER BY o.created_at DESC`,
       [sellerId]
     )
-    return result.rows
+    return result.rows.map(item => ({
+      ...item,
+      price: Number(item.price)
+    }))
   } catch (error) {
     console.error("Error fetching seller orders:", error)
     return []
@@ -429,7 +444,10 @@ export const getReturnOrdersByUser = async (userId: number): Promise<ReturnOrder
        ORDER BY ro.created_at DESC`,
       [userId]
     )
-    return result.rows
+    return result.rows.map(returnOrder => ({
+      ...returnOrder,
+      refund_amount: Number(returnOrder.refund_amount)
+    }))
   } catch (error) {
     console.error("Error fetching return orders:", error)
     return []
@@ -467,7 +485,10 @@ export const getReturnOrdersBySeller = async (sellerId: number): Promise<ReturnO
        ORDER BY ro.created_at DESC`,
       [sellerId]
     )
-    return result.rows
+    return result.rows.map(returnOrder => ({
+      ...returnOrder,
+      refund_amount: Number(returnOrder.refund_amount)
+    }))
   } catch (error) {
     console.error("Error fetching seller return orders:", error)
     return []
