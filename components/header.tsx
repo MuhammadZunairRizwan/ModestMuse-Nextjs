@@ -73,9 +73,14 @@ export function Header() {
               Shop
             </Link>
             {user?.user_type === 'seller' && (
-              <Link href="/seller/products" className="text-gray-700 hover:text-gray-900 font-medium">
-                My Products
-              </Link>
+              <>
+                <Link href="/seller/products" className="text-gray-700 hover:text-gray-900 font-medium">
+                  My Products
+                </Link>
+                <Link href="/seller/orders" className="text-gray-700 hover:text-gray-900 font-medium">
+                  My Orders
+                </Link>
+              </>
             )}
             {user?.user_type === 'buyer' && (
               <Link href="/cart/orders" className="text-gray-700 hover:text-gray-900 font-medium">
@@ -85,12 +90,12 @@ export function Header() {
             <Link href="/about" className="text-gray-700 hover:text-gray-900 font-medium">
               About Us
             </Link>
-            <Link href="#" className="text-gray-700 hover:text-gray-900 font-medium">
+            {/* <Link href="#" className="text-gray-700 hover:text-gray-900 font-medium">
               Blog
             </Link>
             <Link href="#" className="text-gray-700 hover:text-gray-900 font-medium">
               Contact
-            </Link>
+            </Link> */}
           </nav>
 
           {/* Right side icons */}

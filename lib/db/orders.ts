@@ -183,6 +183,26 @@ export const updateOrderStatus = async (
   }
 }
 
+// Update order status for seller (no user_id validation)
+export const updateOrderStatusForSeller = async (
+  orderId: number, 
+  status: Order["status"]
+): Promise<Order | null> => {
+  try {
+    const result = await pool.query(
+      `UPDATE orders 
+       SET status = $1, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $2
+       RETURNING *`,
+      [status, orderId]
+    )
+    return result.rows[0] || null
+  } catch (error) {
+    console.error("Error updating order status:", error)
+    return null
+  }
+}
+
 // Get all orders (for admin/seller view)
 export const getAllOrders = async (): Promise<Order[]> => {
   try {
@@ -199,7 +219,7 @@ export const getAllOrders = async (): Promise<Order[]> => {
   }
 }
 
-// Get seller's orders
+// Get seller's orders (individual items)
 export const getSellerOrders = async (sellerId: number): Promise<OrderItem[]> => {
   try {
     const result = await pool.query(
@@ -226,6 +246,56 @@ export const getSellerOrders = async (sellerId: number): Promise<OrderItem[]> =>
     }))
   } catch (error) {
     console.error("Error fetching seller orders:", error)
+    return []
+  }
+}
+
+// Get seller's orders grouped by order_id
+export const getSellerOrdersGrouped = async (sellerId: number): Promise<any[]> => {
+  try {
+    const result = await pool.query(
+      `SELECT 
+        o.id as order_id,
+        o.order_number,
+        o.status as order_status,
+        o.total_amount,
+        o.delivery_address,
+        o.created_at as order_created_at,
+        o.updated_at as order_updated_at,
+        u.first_name as buyer_first_name,
+        u.last_name as buyer_last_name,
+        u.id as buyer_id,
+        json_agg(
+          json_build_object(
+            'id', oi.id,
+            'product_id', oi.product_id,
+            'product_name', p.name,
+            'product_images', p.images,
+            'quantity', oi.quantity,
+            'price', oi.price,
+            'seller_id', oi.seller_id,
+            'created_at', oi.created_at
+          )
+        ) as items
+       FROM orders o
+       JOIN order_items oi ON o.id = oi.order_id
+       JOIN products p ON oi.product_id = p.id
+       JOIN users u ON o.user_id = u.id
+       WHERE oi.seller_id = $1
+       GROUP BY o.id, o.order_number, o.status, o.total_amount, o.delivery_address, o.created_at, o.updated_at, u.first_name, u.last_name, u.id
+       ORDER BY o.created_at DESC`,
+      [sellerId]
+    )
+    return result.rows.map(order => ({
+      ...order,
+      total_amount: Number(order.total_amount),
+      items: order.items.map((item: any) => ({
+        ...item,
+        price: Number(item.price)
+      }))
+    }))
+  } catch (error) {
+    console.error("Error fetching seller orders grouped:", error)
     return []
   }
 }
