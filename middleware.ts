@@ -31,12 +31,17 @@ export async function middleware(request: NextRequest) {
     const decoded = await verifyToken(token) as { id: number; user_type: string };
     
 
-    // Light check only
-    if (pathname.startsWith("/seller") && decoded.user_type !== "seller") {
-      return NextResponse.redirect(new URL("/shop", request.url));
-    }
+  // Light check only
+  if (pathname.startsWith("/seller") && decoded.user_type !== "seller") {
+    return NextResponse.redirect(new URL("/shop", request.url));
+  }
 
-    return NextResponse.next();
+  // Admin routes check
+  if (pathname.startsWith("/admin") && decoded.user_type !== "admin") {
+    return NextResponse.redirect(new URL("/shop", request.url));
+  }
+
+  return NextResponse.next();
   } catch (error) {
     console.error("Middleware error:", error);
     return NextResponse.redirect(new URL("/login", request.url));

@@ -40,7 +40,9 @@ export default function LoginPage() {
         });
 
         // Redirect based on user type
-        if (data.user.user_type === 'seller') {
+        if (data.user.user_type === 'admin') {
+          router.push('/admin');
+        } else if (data.user.user_type === 'seller') {
           router.push('/seller/products');
         } else {
           router.push('/shop');

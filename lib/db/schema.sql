@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
     last_name VARCHAR(100) NOT NULL,
     phone_number VARCHAR(20) NOT NULL,
     address TEXT NOT NULL,
-    user_type VARCHAR(10) CHECK (user_type IN ('buyer', 'seller')) NOT NULL,
+    user_type VARCHAR(10) CHECK (user_type IN ('buyer', 'seller', 'admin')) NOT NULL,
     is_verified BOOLEAN DEFAULT FALSE,
     shop_name VARCHAR(255),
     registration_number VARCHAR(100),
